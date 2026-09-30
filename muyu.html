@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>木魚 · 功德</title>
+<style>
+  :root{
+    --serif: 'Songti SC','STSong','Noto Serif SC','Source Han Serif SC','SimSun',serif;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; overflow:hidden; }
+  body{
+    background:#000;
+    font-family: var(--serif);
+    color:#fff;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    cursor:pointer;
+  }
+
+  /* ---------- 漂浮微尘 ---------- */
+  .dust{ position:fixed; inset:0; pointer-events:none; z-index:1; }
+  .dust i{
+    position:absolute; display:block; width:2px; height:2px; border-radius:50%;
+    background:#fff; opacity:.05;
+    animation: dustFloat linear infinite;
+  }
+  .dust i:nth-child(1){ left:12%; top:80%; animation-duration:26s; }
+  .dust i:nth-child(2){ left:28%; top:90%; animation-duration:34s; animation-delay:-12s; opacity:.08; }
+  .dust i:nth-child(3){ left:45%; top:85%; animation-duration:29s; animation-delay:-5s; }
+  .dust i:nth-child(4){ left:63%; top:92%; animation-duration:38s; animation-delay:-20s; opacity:.07; }
+  .dust i:nth-child(5){ left:78%; top:82%; animation-duration:24s; animation-delay:-9s; }
+  .dust i:nth-child(6){ left:88%; top:95%; animation-duration:31s; animation-delay:-16s; opacity:.06; }
+  .dust i:nth-child(7){ left:8%;  top:95%; animation-duration:40s; animation-delay:-25s; opacity:.04; }
+  .dust i:nth-child(8){ left:52%; top:98%; animation-duration:22s; animation-delay:-3s; }
+  @keyframes dustFloat{
+    0%   { transform:translateY(0) translateX(0); opacity:0; }
+    10%  { opacity:var(--o,.06); }
+    85%  { opacity:var(--o,.06); }
+    100% { transform:translateY(-88vh) translateX(14px); opacity:0; }
+  }
+
+  /* ---------- 舞台（固定设计坐标，整体缩放适配） ---------- */
+  #stageWrap{ position:fixed; inset:0; z-index:2; }
+  #stage{
+    position:absolute; left:50%; top:50%;
+    width:640px; height:830px;
+    transform:translate(-50%,-50%);
+    transform-origin:center center;
+  }
+  #stage.shake{ animation: microShake .16s ease-out; }
+  @keyframes microShake{
+    0%{ } 30%{ transform:translate(-50%,-50%) scale(var(--s,1)) translateY(2px); } 100%{ }
+  }
+
+  /* ---------- 顶部题字 ---------- */
+  header{
+    position:absolute; top:38px; right:46px;
+    text-align:right; z-index:2; pointer-events:none;
+  }
+  header h1{
+    font-size:36px; font-weight:600; letter-spacing:16px; text-indent:16px;
+    color:rgba(255,255,255,.94);
+    position:relative; display:inline-block;
+  }
+  header h1 .seal{
+    position:absolute; left:-32px; top:5px;
+    width:22px; height:22px;
+    background:#a63a2e;
+    color:#f3e9dc;
+    font-size:12px; font-weight:400; line-height:22px; text-align:center;
+    letter-spacing:0; text-indent:0;
+    border-radius:1.5px;
+    box-shadow:0 0 0 .5px rgba(166,58,46,.55), inset 0 0 3px rgba(60,10,6,.5);
+    opacity:.92;
+  }
+  header .sub{
+    margin-top:8px; font-size:12px; letter-spacing:6px; text-indent:6px;
+    color:rgba(255,255,255,.38);
+  }
+  header .merit{
+    margin-top:16px; font-size:14px; letter-spacing:3px;
+    color:rgba(255,255,255,.62);
+  }
+  header .merit b{
+    display:inline-block; font-weight:600; font-size:18px;
+    color:rgba(255,255,255,.92); margin-left:4px;
+    font-variant-numeric: tabular-nums;
+  }
+  header .merit b.pop{ animation: numPop .32s ease-out; }
+  @keyframes numPop{
+    0%{ transform:scale(1); } 40%{ transform:scale(1.4); } 100%{ transform:scale(1); }
+  }
+
+  /* ---------- 木鱼背后佛光 ---------- */
+  .halo{
+    position:absolute; left:50%; top:540px; z-index:0;
+    width:540px; height:540px; transform:translate(-50%,-50%);
+    background: radial-gradient(circle, rgba(255,252,242,.055) 0%, rgba(255,252,242,.022) 46%, transparent 70%);
+    pointer-events:none;
+    animation: haloBreath 7s ease-in-out infinite;
+  }
+  @keyframes haloBreath{
+    0%,100%{ opacity:.8; } 50%{ opacity:1; }
+  }
+  .halo.flash{ animation: haloFlash .55s ease-out; }
+  @keyframes haloFlash{
+    0%  { filter:brightness(4.5); transform:translate(-50%,-50%) scale(1.015); }
+    100%{ filter:brightness(1); transform:translate(-50%,-50%) scale(1); }
+  }
+
+  /* ---------- 木鱼脚下光晕 ---------- */
+  .glow{
+    position:absolute; left:50%; top:726px; z-index:0;
+    width:400px; height:96px; transform:translate(-50%,-50%);
+    background: radial-gradient(ellipse at center, rgba(255,252,240,.34) 0%, rgba(255,250,235,.10) 42%, transparent 70%);
+    filter: blur(6px);
+    animation: glowBreath 5.2s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes glowBreath{
+    0%,100%{ opacity:.55; } 50%{ opacity:.95; }
+  }
+  .glow.flash{ animation: glowFlash .5s ease-out; }
+  @keyframes glowFlash{
+    0%{ opacity:2.2; } 100%{ opacity:.9; }
+  }
+
+  /* ---------- 木鱼 ---------- */
+  .muyu-float{
+    position:absolute; left:60px; top:330px; width:520px; height:413px;
+    z-index:1;
+    animation: muyuFloat 5.6s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes muyuFloat{
+    0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); }
+  }
+  .muyu-body{
+    width:100%; height:100%;
+    will-change: transform;
+    transform-origin: 50% 88%;
+  }
+  .muyu-body.hit{ animation: muyuHit .38s cubic-bezier(.2,.85,.3,1); }
+  @keyframes muyuHit{
+    0%  { transform: none; }
+    28% { transform: scale(1.045,.952) translateY(6px) rotate(.55deg); }
+    62% { transform: scale(.99,1.01) translateY(-2px) rotate(-.18deg); }
+    100%{ transform: none; }
+  }
+  .muyu{
+    width:100%; height:100%; display:block;
+    filter: url(#blackToAlpha);   /* 图片纯黑背景 → alpha 透明（不依赖页面背景，动画中稳定） */
+    -webkit-user-drag:none;
+  }
+
+  /* ---------- 敲击闪光 ---------- */
+  .impact-flash{
+    position:absolute; left:377px; top:361px; z-index:6;
+    width:150px; height:150px; transform:translate(-50%,-50%) scale(.25);
+    background: radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(255,255,240,.35) 34%, transparent 68%);
+    border-radius:50%; opacity:0; pointer-events:none;
+  }
+  .impact-flash.on{ animation: flashOut .24s ease-out; }
+  @keyframes flashOut{
+    0% { opacity:1; transform:translate(-50%,-50%) scale(.2); }
+    100%{ opacity:0; transform:translate(-50%,-50%) scale(1); }
+  }
+
+  /* ---------- 特效层（涟漪 / 火花 / 飘字） ---------- */
+  #fxLayer{ position:absolute; inset:0; z-index:7; pointer-events:none; overflow:visible; }
+
+  .ring{
+    position:absolute; width:30px; height:30px; border-radius:50%;
+    border:1.5px solid rgba(255,255,255,.9);
+    transform:translate(-50%,-50%) scale(.25);
+    animation: ringSpread .55s cubic-bezier(.15,.6,.35,1) forwards;
+  }
+  @keyframes ringSpread{
+    0%  { transform:translate(-50%,-50%) scale(.25); opacity:.9; }
+    100%{ transform:translate(-50%,-50%) scale(3.4); opacity:0; }
+  }
+
+  .spark{
+    position:absolute; width:3px; height:3px; border-radius:50%;
+    background:#fff; opacity:0;
+    box-shadow:0 0 6px rgba(255,255,255,.9);
+    animation: sparkFly .4s cubic-bezier(.15,.65,.45,1) forwards;
+  }
+  @keyframes sparkFly{
+    0%  { transform:translate(0,0) scale(1); opacity:1; }
+    100%{ transform:translate(var(--dx),var(--dy)) scale(.25); opacity:0; }
+  }
+
+  .fly-word{
+    position:absolute; font-size:17px; letter-spacing:3px;
+    color:rgba(255,255,255,.95); white-space:nowrap;
+    text-shadow:0 0 12px rgba(255,255,255,.35);
+    animation: wordUp 1.05s ease-out forwards;
+  }
+  @keyframes wordUp{
+    0%  { opacity:0; transform:translate(-50%,6px) scale(.82) rotate(var(--r,0deg)); }
+    16% { opacity:.95; }
+    100%{ opacity:0; transform:translate(calc(-50% + var(--wx,0px)),-78px) scale(1.06) rotate(var(--r,0deg)); }
+  }
+
+  /* ---------- 纯白木槌 ---------- */
+  .mallet{
+    position:absolute; left:350px; top:40px; z-index:4;
+    width:64px; height:250px;
+    transform-origin: 32px 0;
+    transform: translateY(0) rotate(28deg);
+    will-change: transform;
+    pointer-events:none;
+  }
+  .mallet svg{ display:block; }
+  .mallet.swing{ animation: malletSwing .48s linear forwards; }
+  /* 短棒：旋转 + 整体下压平移（触底时 translateY 77px 使锤头恰好触到木鱼背） */
+  @keyframes malletSwing{
+    0%  { transform: translateY(0)    rotate(28deg); }
+    6%  { transform: translateY(5px)  rotate(25.5deg); }
+    14% { transform: translateY(24px) rotate(18deg); }
+    22% { transform: translateY(58px) rotate(7.5deg); }
+    28% { transform: translateY(77px) rotate(1.1deg); }   /* 触底：约 134ms */
+    37% { transform: translateY(63px) rotate(6.5deg); }
+    48% { transform: translateY(73px) rotate(4.6deg); }
+    60% { transform: translateY(70px) rotate(5.4deg); }
+    100%{ transform: translateY(0)    rotate(28deg); }    /* 缓缓举回 */
+  }
+
+  /* ---------- 底部提示 ---------- */
+  footer{
+    position:absolute; left:0; right:0; top:772px;
+    text-align:center; z-index:2; pointer-events:none;
+  }
+  footer .hint{
+    font-size:12.5px; letter-spacing:5px; text-indent:5px;
+    color:rgba(255,255,255,.30);
+    transition: opacity 1.4s ease;
+  }
+  footer .hint.hide{ opacity:0; }
+  #autoBtn{
+    pointer-events:auto; cursor:pointer;
+    margin-top:16px; padding:7px 26px;
+    background:transparent; color:rgba(255,255,255,.55);
+    border:1px solid rgba(255,255,255,.22); border-radius:2px;
+    font-family:var(--serif); font-size:13px; letter-spacing:6px; text-indent:6px;
+    transition: all .35s ease;
+  }
+  #autoBtn:hover{ border-color:rgba(255,255,255,.5); color:rgba(255,255,255,.85); }
+  #autoBtn.on{
+    background:rgba(255,255,255,.92); color:#0a0a0a;
+    border-color:rgba(255,255,255,.92);
+  }
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="blackToAlpha" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix"
+        values="1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0.34 0.34 0.34 0 0"/>
+    </filter>
+  </svg>
+  <div class="dust">
+    <i style="--o:.05"></i><i style="--o:.08"></i><i style="--o:.06"></i><i style="--o:.07"></i>
+    <i style="--o:.05"></i><i style="--o:.06"></i><i style="--o:.04"></i><i style="--o:.05"></i>
+  </div>
+
+  <div id="stageWrap">
+    <div id="stage">
+      <header>
+        <h1>木魚<span class="seal">靜</span></h1>
+        <p class="sub">叩一声 · 清心一处</p>
+        <p class="merit">功德<b id="meritNum">0</b></p>
+      </header>
+
+      <div class="halo" id="halo"></div>
+      <div class="glow" id="glow"></div>
+
+      <div class="muyu-float">
+        <div class="muyu-body" id="muyuBody">
+          <img class="muyu" src="my.png" alt="木鱼" draggable="false">
+        </div>
+      </div>
+
+      <div class="impact-flash" id="flash"></div>
+      <div id="fxLayer"></div>
+
+      <div class="mallet" id="mallet">
+        <svg width="64" height="250" viewBox="0 0 64 250" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="stickShade" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0"   stop-color="#f3f3f3"/>
+              <stop offset=".28" stop-color="#ffffff"/>
+              <stop offset=".72" stop-color="#ffffff"/>
+              <stop offset="1"   stop-color="#e9e9e9"/>
+            </linearGradient>
+            <radialGradient id="headShade" cx=".38" cy=".32" r=".85">
+              <stop offset="0"   stop-color="#ffffff"/>
+              <stop offset=".62" stop-color="#ffffff"/>
+              <stop offset="1"   stop-color="#e7e7e7"/>
+            </radialGradient>
+          </defs>
+          <!-- 柄 -->
+          <rect x="25" y="2" width="14" height="180" rx="7" fill="url(#stickShade)"/>
+          <!-- 柄与锤头衔接 -->
+          <rect x="21" y="164" width="22" height="26" rx="9" fill="#ffffff"/>
+          <!-- 锤头 -->
+          <circle cx="32" cy="212" r="32" fill="url(#headShade)"/>
+          <!-- 高光 -->
+          <ellipse cx="23" cy="202" rx="10" ry="7" fill="#ffffff" opacity=".9" transform="rotate(-28 23 202)"/>
+        </svg>
+      </div>
+
+      <footer>
+        <p class="hint">轻触木鱼 或 按下空格</p>
+        <button id="autoBtn">自动诵经</button>
+      </footer>
+    </div>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ================= 舞台缩放适配 ================= */
+  const stage = document.getElementById('stage');
+  let stageScale = 1;
+  function fit(){
+    stageScale = Math.min(window.innerWidth/680, window.innerHeight/880, 1.18);
+    stage.style.setProperty('--s', String(stageScale));
+    stage.style.transform = 'translate(-50%,-50%) scale(' + stageScale + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  /* ================= Web Audio 木鱼声（物理建模合成） =================
+     木鱼是短共鸣腔，敲击声由一组非谐波共振模态 + 高频敲击瞬态 + 低频腔体共鸣组成 */
+  let AC = null, master = null, noiseBuf = null;
+
+  function initAudio(){
+    if (AC) return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    AC = new Ctx();
+    const comp = AC.createDynamicsCompressor();
+    comp.threshold.value = -20;
+    comp.ratio.value = 6;
+    master = AC.createGain();
+    master.gain.value = .85;
+    master.connect(comp);
+    comp.connect(AC.destination);
+    // 预生成白噪声
+    noiseBuf = AC.createBuffer(1, Math.floor(AC.sampleRate * .1), AC.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  function unlockAudio(){
+    initAudio();
+    if (AC && AC.state === 'suspended') AC.resume();
+  }
+
+  function knockSound(vel){
+    if (!AC) return;
+    const t0 = AC.currentTime + .001;
+    // 每次随机微失谐，避免机械重复感
+    const det = 1 + (Math.random() * .05 - .025);
+
+    // 1) 非谐波共振模态簇（木质 "笃" 的主体）
+    const modes = [
+      [ 955, .21, .52],
+      [1530, .115, .22],
+      [2430, .058, .12],
+      [3760, .032, .065]
+    ];
+    for (const [f, dur, amp] of modes){
+      const o = AC.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f * det * (0.995 + Math.random() * .01);
+      const g = AC.createGain();
+      g.gain.setValueAtTime(amp * vel, t0);
+      g.gain.exponentialRampToValueAtTime(.0006, t0 + dur);
+      o.connect(g); g.connect(master);
+      o.start(t0); o.stop(t0 + dur + .03);
+    }
+
+    // 2) 低频腔体共鸣（短促 thump，给身体感）
+    const lo = AC.createOscillator();
+    lo.type = 'sine';
+    lo.frequency.setValueAtTime(205 * det, t0);
+    lo.frequency.exponentialRampToValueAtTime(140, t0 + .05);
+    const lg = AC.createGain();
+    lg.gain.setValueAtTime(.16 * vel, t0);
+    lg.gain.exponentialRampToValueAtTime(.001, t0 + .06);
+    lo.connect(lg); lg.connect(master);
+    lo.start(t0); lo.stop(t0 + .09);
+
+    // 3) 高频敲击瞬态（锤头触木的 "嗒"）
+    const ns = AC.createBufferSource();
+    ns.buffer = noiseBuf;
+    const bp = AC.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 3400 * det;
+    bp.Q.value = 1.3;
+    const ng = AC.createGain();
+    ng.gain.setValueAtTime(.3 * vel, t0);
+    ng.gain.exponentialRampToValueAtTime(.001, t0 + .026);
+    ns.connect(bp); bp.connect(ng); ng.connect(master);
+    ns.start(t0); ns.stop(t0 + .05);
+  }
+
+  /* ================= 敲击编排 ================= */
+  const mallet   = document.getElementById('mallet');
+  const muyuBody = document.getElementById('muyuBody');
+  const flash    = document.getElementById('flash');
+  const glow     = document.getElementById('glow');
+  const halo     = document.getElementById('halo');
+  const hint     = document.querySelector('footer .hint');
+  const fxLayer  = document.getElementById('fxLayer');
+  const meritNum = document.getElementById('meritNum');
+
+  const HIT_X = 377, HIT_Y = 361;   // 设计坐标中的敲击点（触底 -1.1° 时锤头接触位置）
+  const SWING_TO_IMPACT = 134;      // 与 CSS 动画 28% 触底帧对应 (480ms * .28)
+  let impactTimer = null;
+
+  // 功德计数（localStorage 持久化）
+  let merit = 0;
+  try { merit = parseInt(localStorage.getItem('muyu_merit'), 10) || 0; } catch(e){}
+  meritNum.textContent = merit;
+
+  function spawnRing(){
+    const r = document.createElement('span');
+    r.className = 'ring';
+    r.style.left = HIT_X + 'px';
+    r.style.top  = HIT_Y + 'px';
+    fxLayer.appendChild(r);
+    r.addEventListener('animationend', function(){ r.remove(); });
+  }
+
+  function spawnSparks(){
+    const n = 6 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < n; i++){
+      const s = document.createElement('span');
+      s.className = 'spark';
+      const ang = -Math.PI / 2 + (Math.random() - .5) * 2.4;   // 上半扇形
+      const dist = 42 + Math.random() * 58;
+      s.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(1) + 'px');
+      s.style.setProperty('--dy', (Math.sin(ang) * dist).toFixed(1) + 'px');
+      s.style.left = HIT_X + 'px';
+      s.style.top  = HIT_Y + 'px';
+      fxLayer.appendChild(s);
+      s.addEventListener('animationend', function(){ s.remove(); });
+    }
+  }
+
+  function spawnWord(){
+    const w = document.createElement('span');
+    w.className = 'fly-word';
+    w.textContent = '功德 +1';
+    w.style.left = (HIT_X + (Math.random() * 26 - 13)) + 'px';
+    w.style.top  = (HIT_Y - 26) + 'px';
+    w.style.setProperty('--wx', (Math.random() * 24 - 12).toFixed(0) + 'px');
+    w.style.setProperty('--r',  (Math.random() * 6 - 3).toFixed(1) + 'deg');
+    fxLayer.appendChild(w);
+    w.addEventListener('animationend', function(){ w.remove(); });
+  }
+
+  function retrigger(el, cls){
+    el.classList.remove(cls);
+    void el.offsetWidth;          // 强制 reflow，重启动画
+    el.classList.add(cls);
+  }
+
+  function doImpact(){
+    // 声音：力度轻微随机
+    knockSound(.85 + Math.random() * .3);
+    // 木鱼受击变形
+    retrigger(muyuBody, 'hit');
+    // 闪光 + 佛光 + 光晕
+    retrigger(flash, 'on');
+    retrigger(halo, 'flash');
+    retrigger(glow, 'flash');
+    // 首次敲击后提示淡出
+    if (hint && !hint.classList.contains('hide')) hint.classList.add('hide');
+    // 涟漪、火花、飘字
+    spawnRing();
+    spawnSparks();
+    spawnWord();
+    // 舞台微震
+    retrigger(stage, 'shake');
+    // 功德 +1
+    merit += 1;
+    meritNum.textContent = merit;
+    retrigger(meritNum, 'pop');
+    try { localStorage.setItem('muyu_merit', merit); } catch(e){}
+  }
+
+  let lastKnockAt = 0;
+  function knock(){
+    // 防抖：吸收同一次物理操作产生的重复触发（双 pointerdown / 双击），避免"响两声"
+    const now = performance.now();
+    if (now - lastKnockAt < 70) return;
+    lastKnockAt = now;
+    unlockAudio();
+    retrigger(mallet, 'swing');
+    clearTimeout(impactTimer);
+    impactTimer = setTimeout(doImpact, SWING_TO_IMPACT);
+  }
+
+  /* ================= 输入绑定 ================= */
+  // 首次任意交互解锁音频
+  document.addEventListener('pointerdown', unlockAudio, { once: true });
+
+  window.addEventListener('pointerdown', function(e){
+    if (e.target.closest('#autoBtn')) return;   // 按钮点击不触发敲击
+    knock();
+  });
+
+  window.addEventListener('keydown', function(e){
+    if (e.repeat) return;                       // 过滤按住空格产生的重复触发
+    if (e.target.closest && e.target.closest('#autoBtn')) return;
+    if (e.code === 'Space' || e.code === 'Enter'){
+      e.preventDefault();
+      knock();
+    }
+  });
+
+  /* ================= 自动诵经 ================= */
+  const autoBtn = document.getElementById('autoBtn');
+  let autoTimer = null;
+
+  function autoLoop(){
+    knock();
+    autoTimer = setTimeout(autoLoop, 1150 + Math.random() * 650);  // 拟人节奏
+  }
+  autoBtn.addEventListener('click', function(){
+    if (autoTimer){
+      clearTimeout(autoTimer);
+      autoTimer = null;
+      autoBtn.classList.remove('on');
+      autoBtn.textContent = '自动诵经';
+    } else {
+      autoLoop();
+      autoBtn.classList.add('on');
+      autoBtn.textContent = '停止诵经';
+    }
+  });
+})();
+</script>
+</body>
+</html>
